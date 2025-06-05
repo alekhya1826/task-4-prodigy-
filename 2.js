@@ -6,17 +6,22 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static(__dirname));
+app.use(express.static('public'));
 
 io.on('connection', (socket) => {
   console.log('User connected');
 
-  socket.on('chat message', (msg) => {
-    io.emit('chat message', msg); // broadcast to everyone
+  socket.on('join', (username) => {
+    socket.username = username;
+    socket.broadcast.emit('message', `${username} joined the chat`);
+  });
+
+  socket.on('chat', (msg) => {
+    io.emit('message', `${socket.username}: ${msg}`);
   });
 
   socket.on('disconnect', () => {
-    console.log('User disconnected');
+    io.emit('message', `${socket.username} left the chat`);
   });
 });
 
